@@ -1,0 +1,887 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>My Daily Compass 🧡</title>
+<meta name="description" content="Your personal daily planning and wellness compass">
+<meta name="theme-color" content="#E8841A">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="My Compass">
+<style>
+/* Self-contained fonts — no external requests */
+body { font-family: -apple-system, 'Helvetica Neue', Arial, sans-serif; }
+</style>
+<style id="font-overrides">
+.m-title, .q-title, .intention-text, .app-title, .focus-title, .lang-big,
+.nt-value, .arts-day-label, .coach-note p {
+  font-family: Georgia, 'Times New Roman', serif;
+}
+</style>
+<style>
+:root {
+  --cream: #FAF6F0;
+  --warm-white: #FFFDF9;
+  --amber: #E8841A;
+  --amber-light: #F4A94E;
+  --amber-pale: #FDF0DC;
+  --forest: #2D5016;
+  --sage: #5A7A3A;
+  --sage-light: #8FAD68;
+  --sage-pale: #EDF2E6;
+  --slate: #3A4A5C;
+  --slate-light: #6B7E94;
+  --slate-pale: #EDF1F5;
+  --rose: #C85A5A;
+  --rose-pale: #FAEAEA;
+  --teal: #2A7A7A;
+  --teal-pale: #E3F4F4;
+  --ink: #1A1A2E;
+  --gold: #C9943A;
+  --gold-pale: #FAF1E1;
+  --mint: #2A7A6A;
+  --mint-pale: #E3F4F0;
+  --text: #2A2A2A;
+  --text-muted: #6B7070;
+}
+* { margin:0; padding:0; box-sizing:border-box; }
+body { font-family:'DM Sans',sans-serif; background:var(--cream); color:var(--text); min-height:100vh; }
+
+/* ── SCREENS ── */
+.screen { display:none; min-height:100vh; flex-direction:column; }
+.screen.active { display:flex; }
+
+/* ── MAIN APP (tabs) ── */
+#screen-app { background:var(--cream); overflow:hidden; }
+.app-header { background:var(--slate); padding:24px 20px 18px; position:relative; overflow:hidden; flex-shrink:0; }
+.app-header::before { content:''; position:absolute; top:-40px; right:-40px; width:160px; height:160px; border-radius:50%; background:rgba(232,132,26,0.12); }
+.app-header-row { display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:2px; }
+.app-title { font-family:'DM Serif Display',serif; font-size:22px; color:#fff; line-height:1.2; }
+.app-title span { color:var(--amber-light); }
+.day-badge { background:var(--amber); color:#fff; font-size:11px; font-weight:600; padding:4px 11px; border-radius:20px; white-space:nowrap; }
+.app-sub { color:rgba(255,255,255,0.55); font-size:12px; font-weight:300; }
+.app-header::after { content:''; position:absolute; bottom:0; left:0; right:0; height:2px; background:linear-gradient(90deg,var(--amber),var(--sage-light),var(--amber)); }
+
+/* ── TAB NAV ── */
+.tab-nav { display:flex; background:var(--warm-white); border-bottom:2px solid #EDE8DF; overflow-x:auto; scrollbar-width:none; flex-shrink:0; }
+.tab-nav::-webkit-scrollbar { display:none; }
+.tab-btn { padding:12px 16px; font-family:'DM Sans',sans-serif; font-size:12px; font-weight:500; border:none; background:none; cursor:pointer; color:var(--text-muted); white-space:nowrap; border-bottom:3px solid transparent; margin-bottom:-2px; transition:all 0.2s; }
+.tab-btn.active { color:var(--amber); border-bottom-color:var(--amber); }
+
+/* ── TAB CONTENT ── */
+.tab-content { flex:1; overflow-y:auto; }
+.view { display:none; padding:16px; max-width:580px; margin:0 auto; padding-bottom:24px; }
+.view.active { display:block; }
+
+/* ── CARDS & SHARED COMPONENTS ── */
+.card { background:var(--warm-white); border-radius:14px; padding:16px; margin-bottom:12px; border:1px solid #EDE8DF; }
+.section-label { font-size:10px; font-weight:600; letter-spacing:1.5px; text-transform:uppercase; color:var(--text-muted); margin-bottom:10px; margin-top:4px; }
+
+/* CHECK ITEMS */
+.check-item { display:flex; align-items:flex-start; gap:12px; padding:10px 0; border-bottom:1px solid #F0EBE3; cursor:pointer; }
+.check-item:last-child { border-bottom:none; padding-bottom:0; }
+.check-box { width:20px; height:20px; border:2px solid #D4CEC6; border-radius:6px; flex-shrink:0; margin-top:1px; display:flex; align-items:center; justify-content:center; transition:all 0.2s; font-size:12px; }
+.check-item.checked .check-box { background:var(--sage); border-color:var(--sage); color:white; }
+.check-item.checked .check-text { text-decoration:line-through; color:var(--text-muted); }
+.check-text { font-size:14px; line-height:1.4; }
+.check-sub { font-size:11px; color:var(--text-muted); margin-top:2px; }
+
+/* ENERGY BUTTONS */
+.energy-row { display:flex; gap:8px; flex-wrap:wrap; margin-top:8px; }
+.energy-btn { padding:7px 13px; border-radius:20px; border:1.5px solid #D4CEC6; background:none; font-family:'DM Sans',sans-serif; font-size:12px; cursor:pointer; transition:all 0.2s; color:var(--text); }
+.energy-btn.selected { background:var(--amber); border-color:var(--amber); color:white; }
+
+/* TIME BLOCKS */
+.time-block { display:flex; gap:14px; align-items:flex-start; padding:11px 0; border-bottom:1px solid #F0EBE3; }
+.time-block:last-child { border-bottom:none; }
+.time-label { font-size:10px; font-weight:600; color:var(--text-muted); min-width:52px; padding-top:2px; }
+.time-title { font-size:13px; font-weight:500; margin-bottom:2px; display:flex; align-items:center; gap:8px; flex-wrap:wrap; }
+.time-detail { font-size:12px; color:var(--text-muted); line-height:1.4; }
+.tag { font-size:10px; font-weight:600; padding:2px 7px; border-radius:10px; }
+.tag-amber { background:var(--amber-pale); color:var(--amber); }
+.tag-sage { background:var(--sage-pale); color:var(--sage); }
+.tag-teal { background:var(--teal-pale); color:var(--teal); }
+.tag-rose { background:var(--rose-pale); color:var(--rose); }
+.tag-slate { background:var(--slate-pale); color:var(--slate); }
+
+/* INTENTION BANNER */
+.intention-card { background:linear-gradient(135deg,var(--ink) 0%,#16213E 100%); border-radius:14px; padding:18px; margin-bottom:12px; border:1px solid rgba(232,132,26,0.2); position:relative; overflow:hidden; }
+.intention-card::before { content:'"'; font-family:'DM Serif Display',serif; font-size:100px; color:rgba(232,132,26,0.07); position:absolute; top:-15px; left:8px; line-height:1; }
+.intention-label { font-size:9px; letter-spacing:2px; text-transform:uppercase; color:var(--amber-light); margin-bottom:6px; }
+.intention-text { font-family:'DM Serif Display',serif; font-size:16px; color:#fff; line-height:1.5; font-style:italic; }
+
+/* PROGRESS MIRROR */
+.progress-bar-wrap { margin-top:6px; }
+.progress-bar { height:8px; background:#EDE8DF; border-radius:10px; overflow:hidden; }
+.progress-fill { height:100%; border-radius:10px; background:var(--amber); transition:width 0.4s; }
+
+/* MEETING ALERT */
+.meeting-alert { background:var(--rose-pale); border:1.5px solid rgba(200,90,90,0.2); border-radius:12px; padding:13px 14px; margin-bottom:12px; display:flex; gap:10px; }
+.meeting-alert.yellow { background:var(--amber-pale); border-color:rgba(232,132,26,0.3); }
+.alert-icon { font-size:18px; flex-shrink:0; }
+.alert-title { font-size:13px; font-weight:600; color:var(--rose); margin-bottom:3px; }
+.meeting-alert.yellow .alert-title { color:var(--amber); }
+.alert-text { font-size:12px; color:var(--text-muted); line-height:1.5; }
+
+/* TIME BANDS (work blocks) */
+.time-band { background:var(--warm-white); border-radius:10px; overflow:hidden; margin-bottom:7px; border:1px solid #EDE8DF; }
+.time-band-hdr { display:flex; align-items:center; gap:10px; padding:11px 13px; cursor:pointer; }
+.time-band-time { font-size:10px; font-weight:600; color:var(--amber); min-width:56px; }
+.time-band-title { font-size:13px; font-weight:500; flex:1; }
+.band-tag { font-size:9px; font-weight:600; padding:3px 8px; border-radius:10px; }
+.band-protect { background:var(--mint-pale); color:var(--mint); }
+.band-alert { background:var(--rose-pale); color:var(--rose); }
+.band-task { background:var(--slate-pale); color:var(--slate); }
+.band-body { padding:9px 13px 11px; font-size:12px; color:var(--text-muted); line-height:1.6; display:none; }
+.band-body.open { display:block; }
+
+/* WORKOUT CARDS */
+.workout-card { background:var(--sage-pale); border-radius:11px; padding:14px; margin-bottom:9px; border-left:4px solid var(--sage); }
+.workout-title { font-weight:600; font-size:13px; color:var(--forest); margin-bottom:5px; display:flex; align-items:center; gap:8px; cursor:pointer; }
+.workout-detail { font-size:11px; color:var(--sage); line-height:1.7; }
+
+/* ARTS DAY / REST DAY */
+.arts-day-card { background:linear-gradient(135deg,#F5F0E8,#EDF4EE); border-radius:14px; padding:16px; border:1px solid rgba(90,122,58,0.2); margin-bottom:8px; }
+.arts-day-label { font-family:'DM Serif Display',serif; font-size:18px; color:var(--forest); margin-bottom:4px; }
+.arts-day-sub { font-size:12px; color:var(--text-muted); margin-bottom:12px; font-style:italic; }
+.arts-block { display:flex; gap:12px; align-items:flex-start; padding:9px 0; border-bottom:1px solid rgba(90,122,58,0.12); cursor:pointer; }
+.arts-block:last-child { border-bottom:none; }
+.arts-block .task-check { width:20px; height:20px; border:2px solid #D4CEC6; border-radius:6px; flex-shrink:0; display:flex; align-items:center; justify-content:center; transition:all 0.2s; font-size:12px; }
+.arts-block.done .task-check { background:var(--sage); border-color:var(--sage); color:#fff; }
+.arts-block.done .task-title { text-decoration:line-through; color:var(--text-muted); }
+.rest-day-card { background:var(--slate-pale); border-radius:14px; padding:24px 16px; text-align:center; border:1px dashed #C0BBBA; }
+
+/* NUTRITION */
+.nutrition-grid { display:grid; grid-template-columns:1fr 1fr; gap:9px; margin-bottom:12px; }
+.nt-item { background:var(--amber-pale); border-radius:10px; padding:11px; text-align:center; }
+.nt-value { font-size:20px; font-weight:600; color:var(--amber); font-family:'DM Serif Display',serif; }
+.nt-label { font-size:10px; color:var(--text-muted); margin-top:2px; }
+.meal-option { background:var(--warm-white); border:1px solid #EDE8DF; border-radius:9px; padding:11px 13px; margin-bottom:7px; }
+.meal-name { font-weight:500; font-size:13px; margin-bottom:3px; }
+.meal-prot { font-size:11px; font-weight:600; color:var(--sage); }
+.meal-desc { font-size:11px; color:var(--text-muted); margin-top:2px; line-height:1.4; }
+
+/* ANCHOR BOX */
+.anchor-box { background:var(--teal-pale); border-radius:11px; padding:14px; border-left:4px solid var(--teal); margin-bottom:9px; }
+.anchor-title { font-weight:600; font-size:13px; color:var(--teal); margin-bottom:5px; }
+.anchor-text { font-size:12px; color:var(--slate); line-height:1.6; }
+
+/* WEEK GRID */
+.week-grid { display:grid; grid-template-columns:repeat(7,1fr); gap:5px; margin-top:8px; }
+.day-cell { background:var(--warm-white); border:1.5px solid #EDE8DF; border-radius:9px; padding:7px 3px; text-align:center; }
+.day-cell.today { border-color:var(--amber); background:var(--amber-pale); }
+.day-name { font-size:9px; font-weight:600; color:var(--text-muted); text-transform:uppercase; letter-spacing:0.5px; }
+.day-icon { font-size:15px; margin:3px 0; }
+.day-type { font-size:8px; color:var(--text-muted); line-height:1.2; }
+
+/* ACHIEVEMENTS */
+.ach-form { background:var(--warm-white); border-radius:13px; padding:16px; margin-bottom:12px; border:1px solid #EDE8DF; }
+.ach-label { font-size:9px; letter-spacing:1.5px; text-transform:uppercase; color:var(--amber); font-weight:600; margin-bottom:7px; display:block; }
+.ach-input { width:100%; padding:9px 11px; border:1.5px solid #EDE8DF; border-radius:9px; font-family:'DM Sans',sans-serif; font-size:13px; color:var(--text); background:var(--cream); margin-bottom:10px; }
+.ach-input:focus { outline:none; border-color:var(--amber); }
+.ach-textarea { width:100%; padding:9px 11px; border:1.5px solid #EDE8DF; border-radius:9px; font-family:'DM Sans',sans-serif; font-size:13px; color:var(--text); background:var(--cream); resize:none; height:72px; }
+.ach-textarea:focus { outline:none; border-color:var(--amber); }
+.cat-pills { display:flex; flex-wrap:wrap; gap:6px; margin-bottom:12px; }
+.cat-pill { padding:5px 12px; border-radius:20px; border:1.5px solid #EDE8DF; font-family:'DM Sans',sans-serif; font-size:11px; cursor:pointer; background:var(--cream); color:var(--text-muted); transition:all 0.2s; }
+.cat-pill.active { background:var(--ink); border-color:var(--ink); color:#fff; }
+.add-btn { width:100%; padding:12px; background:var(--amber); color:#fff; border:none; border-radius:9px; font-family:'DM Sans',sans-serif; font-size:13px; font-weight:600; cursor:pointer; }
+.add-btn:hover { background:var(--amber-light); }
+.ach-item { background:var(--warm-white); border-radius:11px; padding:13px 14px; margin-bottom:7px; border:1px solid #EDE8DF; border-left:4px solid var(--amber); }
+.ach-cat { font-size:9px; font-weight:600; letter-spacing:1px; text-transform:uppercase; color:var(--amber); margin-bottom:4px; }
+.ach-title-text { font-size:13px; font-weight:500; margin-bottom:2px; }
+.ach-impact { font-size:11px; color:var(--text-muted); line-height:1.4; font-style:italic; }
+.ach-date { font-size:10px; color:#C0BBBA; margin-top:5px; }
+.ach-del { float:right; background:none; border:none; color:#D4CEC6; cursor:pointer; font-size:15px; }
+.ach-del:hover { color:var(--rose); }
+.ach-empty { text-align:center; padding:28px 16px; color:var(--text-muted); font-size:13px; }
+
+/* CAREER */
+.focus-card { background:linear-gradient(135deg,var(--ink),#16213E); border-radius:13px; padding:16px; margin-bottom:12px; border:1px solid rgba(232,132,26,0.2); }
+.focus-label { font-size:9px; letter-spacing:2px; text-transform:uppercase; color:var(--amber-light); margin-bottom:6px; }
+.focus-title { font-family:'DM Serif Display',serif; font-size:17px; color:#fff; line-height:1.4; margin-bottom:8px; }
+.focus-tips { list-style:none; }
+.focus-tips li { font-size:11px; color:rgba(255,255,255,0.6); padding:4px 0 4px 14px; border-bottom:1px solid rgba(255,255,255,0.05); position:relative; }
+.focus-tips li::before { content:'→'; position:absolute; left:0; color:var(--amber-light); }
+.strategy-block { background:var(--warm-white); border-radius:11px; padding:14px; margin-bottom:9px; border:1px solid #EDE8DF; }
+.sb-num { font-family:'DM Serif Display',serif; font-size:26px; color:var(--amber); line-height:1; margin-bottom:4px; }
+.sb-title { font-size:13px; font-weight:600; margin-bottom:5px; }
+.sb-text { font-size:12px; color:var(--text-muted); line-height:1.6; }
+.sb-tag { display:inline-block; margin-top:7px; font-size:10px; font-weight:600; padding:2px 9px; border-radius:10px; background:var(--amber-pale); color:var(--amber); }
+
+/* LANGUAGE */
+.lang-banner { background:linear-gradient(135deg,#EDF2E6,#E3F4F4); border-radius:12px; padding:14px; text-align:center; border:1px solid #C8D8C0; margin-bottom:12px; }
+.lang-big { font-family:'DM Serif Display',serif; font-size:20px; color:var(--forest); }
+.lang-sub { font-size:11px; color:var(--text-muted); margin-top:4px; }
+
+/* COACH NOTE */
+.coach-note { background:linear-gradient(135deg,var(--amber-pale),#FEF6EE); border-radius:13px; padding:16px; border:1px solid #F4D9AC; margin-bottom:12px; }
+.coach-note p { font-size:12px; line-height:1.7; color:var(--slate); font-style:italic; }
+.coach-name { font-size:11px; font-weight:600; color:var(--amber); margin-top:8px; }
+
+/* PROG BAR (week) */
+.prog-label { display:flex; justify-content:space-between; font-size:11px; color:var(--text-muted); margin-bottom:5px; }
+.prog-bar { height:7px; background:#EDE8DF; border-radius:10px; overflow:hidden; }
+.prog-fill2 { height:100%; border-radius:10px; background:var(--sage); transition:width 0.4s; }
+
+/* PHASE BADGE */
+.phase-badge { display:inline-flex; align-items:center; gap:5px; background:var(--slate); color:white; font-size:10px; font-weight:600; padding:4px 10px; border-radius:20px; }
+.phase-dot { width:6px; height:6px; border-radius:50%; background:var(--amber-light); }
+
+/* WELLBEING */
+.wb-row { display:flex; gap:7px; flex-wrap:wrap; margin-top:8px; }
+.wb-btn { padding:7px 13px; border-radius:20px; border:1.5px solid #D4CEC6; background:none; font-family:'DM Sans',sans-serif; font-size:12px; cursor:pointer; transition:all 0.2s; }
+.wb-btn.selected { background:var(--teal); border-color:var(--teal); color:white; }
+
+/* VITAMINS */
+.prog-cycle-grid { display:grid; grid-template-columns:repeat(7,1fr); gap:4px; margin-bottom:10px; }
+
+/* LOCATION TOGGLE */
+.loc-toggle { display:flex; gap:7px; margin-bottom:14px; }
+.loc-btn { flex:1; padding:9px; border-radius:9px; border:1.5px solid #D4CEC6; background:none; font-family:'DM Sans',sans-serif; font-size:12px; cursor:pointer; transition:all 0.2s; text-align:center; }
+.loc-btn.active { background:var(--slate); border-color:var(--slate); color:white; }
+
+/* SCROLL HINT */
+.scroll-hint { font-size:11px; color:var(--text-muted); text-align:center; padding:14px 0 4px; }
+</style>
+</head>
+<body>
+
+<!-- ══════════════════════════════════
+     MAIN APP SCREEN
+══════════════════════════════════ -->
+<div id="screen-app" class="screen active">
+  <div class="app-header">
+    <div class="app-header-row">
+      <div class="app-title">My Daily <span>Compass</span> 🧡</div>
+      <div class="day-badge" id="dayBadge">Sunday</div>
+    </div>
+    <div class="app-sub" id="dateSub">Phase 1 · Week 1 · Reawaken</div>
+  </div>
+
+  <nav class="tab-nav">
+    <button class="tab-btn active" onclick="showTab('today')">☀️ Today</button>
+    <button class="tab-btn" onclick="showTab('checklist')">✅ Checklist</button>
+    <button class="tab-btn" onclick="showTab('workout')">💪 Workout</button>
+    <button class="tab-btn" onclick="showTab('food')">🥗 Food</button>
+    <button class="tab-btn" onclick="showTab('week')">📅 Week</button>
+    <button class="tab-btn" onclick="showTab('mind')">🧠 Mind</button>
+    <button class="tab-btn" onclick="showTab('language')">🇮🇹 Language</button>
+    <button class="tab-btn" onclick="showTab('vitamins')">💊 Vitamins</button>
+    <button class="tab-btn" onclick="showTab('wins')">🏆 Wins</button>
+    <button class="tab-btn" onclick="showTab('career')">🎯 Career</button>
+  </nav>
+
+  <div class="tab-content">
+
+    <!-- ===== TODAY (intention + work schedule) ===== -->
+    <div id="tab-today" class="view active">
+      <div class="intention-card">
+        <div class="intention-label">Today's Intention</div>
+        <div class="intention-text" id="intentionText">One step forward is enough.</div>
+      </div>
+      <div id="meetingAlert"></div>
+
+      <!-- Progress mirror -->
+      <div class="card" style="padding:14px 16px;">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">
+          <div style="font-size:12px;font-weight:600;color:var(--text);">Today Progress</div>
+          <div id="progressCount" style="font-size:11px;font-weight:600;color:var(--amber);">0 / 14 done</div>
+        </div>
+        <div class="progress-bar-wrap">
+          <div class="progress-bar"><div class="progress-fill" id="progressFill" style="width:0%"></div></div>
+        </div>
+        <div style="font-size:10px;color:var(--text-muted);margin-top:6px;">Tick items on the Checklist tab — updates here automatically</div>
+      </div>
+
+      <div class="section-label">Work Day</div>
+      <div id="workBlocks"></div>
+
+      <div class="coach-note" id="coachNote">
+        <p id="coachText">One step at a time. You are doing better than you think. 🧡</p>
+        <div class="coach-name">— Your Coach 🧡</div>
+      </div>
+    </div>
+
+    <!-- ===== CHECKLIST (the one place to tick) ===== -->
+    <div id="tab-checklist" class="view">
+      <div class="card" style="border-left:4px solid var(--amber);padding-left:16px;">
+        <div style="display:flex;justify-content:space-between;align-items:center;">
+          <div class="section-label" style="margin:0;">How's your energy?</div>
+          <div class="phase-badge"><div class="phase-dot"></div> Phase 1</div>
+        </div>
+        <div class="energy-row" style="margin-top:8px;">
+          <button class="energy-btn" onclick="setEnergy(this)">🔋 Low</button>
+          <button class="energy-btn" onclick="setEnergy(this)">⚡ Medium</button>
+          <button class="energy-btn" onclick="setEnergy(this)">🚀 High</button>
+        </div>
+      </div>
+
+      <div class="section-label">Morning Anchors</div>
+      <div class="card">
+        <div class="check-item" onclick="tick(this)"><div class="check-box"></div><div><div class="check-text">💧 Drink 500ml water before anything else</div><div class="check-sub">Before phone. Before email. Water first.</div></div></div>
+        <div class="check-item" onclick="tick(this)"><div class="check-box"></div><div><div class="check-text">🐱 Cat-Cow × 10 slow breaths — do it before checking phone</div><div class="check-sub">90 seconds. Wakes up every vertebra.</div></div></div>
+        <div class="check-item" onclick="tick(this)"><div class="check-box"></div><div><div class="check-text">🌅 Natural light within 20 minutes of waking</div><div class="check-sub">Window, balcony, or outside. Resets your clock.</div></div></div>
+        <div class="check-item" onclick="tick(this)"><div class="check-box"></div><div><div class="check-text">🍳 Eat within 45 min of waking — protein first</div><div class="check-sub">Your body uses protein better at this window</div></div></div>
+      </div>
+
+      <div class="section-label">☀️ Morning Vitamins — with breakfast</div>
+      <div class="card" style="border-left:4px solid var(--teal);padding-left:14px;">
+        <div class="check-item" onclick="tick(this)"><div class="check-box"></div><div><div class="check-text">💊 Oestrogen</div><div class="check-sub">HRT — same time every day. Do not skip.</div></div></div>
+        <div class="check-item" onclick="tick(this)"><div class="check-box"></div><div><div class="check-text">🦁 2 × Lion's Mane</div><div class="check-sub">Cognitive function, focus, nerve growth. Morning is best window.</div></div></div>
+        <div class="check-item" onclick="tick(this)"><div class="check-box"></div><div><div class="check-text">🩸 1 × Iron</div><div class="check-sub">Take with vitamin C. Avoid tea/coffee for 1 hour after.</div></div></div>
+        <div class="check-item" onclick="tick(this)"><div class="check-box"></div><div><div class="check-text">☀️ 1 × D3 + K2</div><div class="check-sub">Fat-soluble — take with a meal containing healthy fat.</div></div></div>
+        <div class="check-item" onclick="tick(this)"><div class="check-box"></div><div><div class="check-text" id="creatineLabel">⚡ Creatine — in morning tea or coffee</div><div class="check-sub" id="creatineSub">Loading...</div></div></div>
+      </div>
+
+      <div class="section-label">🌙 Evening Vitamins — 8–9pm</div>
+      <div class="card" style="border-left:4px solid var(--slate);padding-left:14px;">
+        <div class="check-item" onclick="tick(this)"><div class="check-box"></div><div><div class="check-text">🌿 2 × Ashwagandha</div><div class="check-sub">Cortisol reduction. Evening timing optimal.</div></div></div>
+        <div class="check-item" onclick="tick(this)"><div class="check-box"></div><div><div class="check-text">💜 1 × Magnesium Glycinate</div><div class="check-sub">Take 30–60 min before bed. Sleep, recovery, anxiety.</div></div></div>
+        <div class="check-item" id="progItem" onclick="tick(this)"><div class="check-box"></div><div><div class="check-text" id="progLabel">💊 2 × Progesterone</div><div class="check-sub" id="progSub">Loading...</div></div></div>
+      </div>
+
+      <div class="section-label">Wind-Down</div>
+      <div class="card">
+        <div class="check-item" onclick="tick(this)"><div class="check-box"></div><div><div class="check-text">📵 Phone away by 9pm</div><div class="check-sub">No new information input after this time.</div></div></div>
+        <div class="check-item" onclick="tick(this)"><div class="check-box"></div><div><div class="check-text">🌙 Lights dimmed by 9:30pm</div><div class="check-sub">Melatonin needs darkness to build.</div></div></div>
+        <div class="check-item" onclick="tick(this)"><div class="check-box"></div><div><div class="check-text">🛏 In bed by 10:30pm</div><div class="check-sub">Your recovery happens here. The plan only works with sleep.</div></div></div>
+      </div>
+
+      <div class="card">
+        <div class="section-label">One Win Today</div>
+        <textarea id="winText" placeholder="Even tiny wins count. Write one thing you did today…" style="width:100%;border:1px solid #D4CEC6;border-radius:9px;padding:10px;font-family:'DM Sans',sans-serif;font-size:13px;resize:none;height:72px;color:var(--text);background:var(--cream);" oninput="saveWin()"></textarea>
+        <div style="font-size:10px;color:var(--text-muted);margin-top:5px;">These build your year-end self-assessment. Every one matters. 🧡</div>
+      </div>
+    </div>
+
+    <!-- ===== WORKOUT ===== -->
+    <div id="tab-workout" class="view">
+      <div class="loc-toggle">
+        <button class="loc-btn active" id="locHome" onclick="setLoc('home')">🏠 Home</button>
+        <button class="loc-btn" id="locHotel" onclick="setLoc('hotel')">🏨 Hotel</button>
+        <button class="loc-btn" id="locGym" onclick="setLoc('gym')">🏋️ Gym</button>
+      </div>
+      <div id="workout-home">
+        <div class="section-label">This Week — tap to expand</div>
+        <div class="workout-card"><div class="workout-title" onclick="toggleW('wd-mon')">💪 Monday — Strength Lower <span class="tag tag-sage" style="margin-left:auto;">40–45 min</span></div><div id="wd-mon" style="display:none;" class="workout-detail"><div>🟢 Glute Bridge 3×15 · BW Squat 3×15 · Reverse Lunge 3×12</div><div>🟢 Single-Leg Deadlift 3×10 · Calf Raises 3×20 · Lateral Band Walk 3×15</div><div style="margin-top:6px;font-size:10px;font-style:italic;">Loop bands light+med. Feel it in glutes, not lower back.</div></div></div>
+        <div class="workout-card" style="background:var(--teal-pale);border-left-color:var(--teal);"><div class="workout-title" style="color:var(--teal);" onclick="toggleW('wd-tue')">🧘 Tuesday — Mobility <span class="tag tag-teal" style="margin-left:auto;">30 min</span></div><div id="wd-tue" style="display:none;" class="workout-detail" style="color:var(--teal);"><div>🔵 90/90 Hip Stretch 2 min each · Cat-Cow 10 reps</div><div>🔵 Thread the Needle 10 reps · Pigeon Stretch 2 min · Legs Up Wall 5 min</div></div></div>
+        <div class="workout-card"><div class="workout-title" onclick="toggleW('wd-wed')">💪 Wednesday — Strength Upper <span class="tag tag-sage" style="margin-left:auto;">40–45 min</span></div><div id="wd-wed" style="display:none;" class="workout-detail"><div>🟢 Push-Ups 3×12 · Band Rows 3×15 · Band OH Press 3×12</div><div>🟢 Band Bicep Curls 3×15 · Plank 3×30s · Side Plank 2×20s</div></div></div>
+        <div class="workout-card" style="background:var(--amber-pale);border-left-color:var(--amber);"><div class="workout-title" style="color:var(--amber);" onclick="toggleW('wd-thu')">🏋️ Thursday — Gym + Cardio <span class="tag tag-amber" style="margin-left:auto;">45 min</span></div><div id="wd-thu" style="display:none;" class="workout-detail"><div>🟠 Goblet Squat 3×12 · Single-Arm DB Row 3×12 · DB Hip Thrust 3×15</div><div>🟠 Skipping 5×2 min intervals</div><div style="margin-top:6px;font-size:10px;font-style:italic;">📍 Mindset Gym £7.50 · 1 Lower Marsh · 2 min from Ruby Lucy Hotel</div></div></div>
+        <div class="workout-card" style="background:var(--rose-pale);border-left-color:var(--rose);"><div class="workout-title" style="color:var(--rose);" onclick="toggleW('wd-fri')">🏃‍♀️ Friday — The Comeback Run ✨ <span class="tag tag-rose" style="margin-left:auto;">35–40 min</span></div><div id="wd-fri" style="display:none;" class="workout-detail"><div>🌊 Walk 5 min warm-up → 4 min walk / 1 min jog × 5 → 5 min cool-down</div><div style="margin-top:6px;font-size:10px;font-style:italic;">📍 South Bank, Queen's Walk · Fenix ON · HR under 140 bpm · Let it be emotional. 🧡</div></div></div>
+        <div class="workout-card" style="background:#F5F9F0;border-left-color:var(--sage-light);"><div class="workout-title" style="color:var(--forest);" onclick="toggleW('wd-sat')">🎨 Saturday — Arts Day <span class="tag tag-sage" style="margin-left:auto;">Workshop</span></div><div id="wd-sat" style="display:none;" class="workout-detail"><div>Leatherwork · Knitting · Painting — choose one, go deep</div><div>+ 45 min study session at 3pm</div></div></div>
+        <div class="card" style="border:1.5px dashed #D4CEC6;text-align:center;padding:14px;"><div style="font-size:22px;margin-bottom:5px;">😴</div><div style="font-weight:600;font-size:13px;">Sunday — Full Rest</div></div>
+      </div>
+      <div id="workout-hotel" style="display:none;">
+        <div class="anchor-box"><div class="anchor-title">🏨 Hotel Room Protocol</div><div class="anchor-text">Clear 2m×2m space. Skipping on tiles. Bands attach to door. All exercises work in small rooms.</div></div>
+        <div class="workout-card"><div class="workout-title">No gym — full bodyweight circuit</div><div class="workout-detail">Squats · Push-ups · Glute bridges · Dead bugs · Lunges · Band rows — 4 rounds × 12 reps · 35 min</div></div>
+        <div class="workout-card" style="background:var(--amber-pale);border-left-color:var(--amber);"><div class="workout-title" style="color:var(--amber);">Exhausted / tough week?</div><div class="workout-detail">20 min gentle yoga flow or walk. You are not failing — you are adapting. 🧡</div></div>
+      </div>
+      <div id="workout-gym" style="display:none;">
+        <div class="workout-card" style="background:var(--teal-pale);border-left-color:var(--teal);"><div class="workout-title" style="color:var(--teal);">Full Gym — make the most of it</div><div class="workout-detail">Barbell hip thrusts · Cable rows · Lat pulldown · Goblet squats · Leg press · 50 min</div></div>
+      </div>
+    </div>
+
+    <!-- ===== FOOD ===== -->
+    <div id="tab-food" class="view">
+      <div class="nutrition-grid">
+        <div class="nt-item"><div class="nt-value">120g</div><div class="nt-label">Protein / day</div></div>
+        <div class="nt-item"><div class="nt-value">2.5L</div><div class="nt-label">Water / day</div></div>
+        <div class="nt-item" style="background:var(--sage-pale);"><div class="nt-value" style="color:var(--sage);">1,800</div><div class="nt-label">Max kcal</div></div>
+        <div class="nt-item" style="background:var(--sage-pale);"><div class="nt-value" style="color:var(--sage);">30g</div><div class="nt-label">Fibre / day</div></div>
+      </div>
+      <div class="section-label">Breakfast (aim 50–65g protein)</div>
+      <div class="meal-option"><div class="meal-name">🏨 Hotel Breakfast Hero</div><div class="meal-prot">~66g protein</div><div class="meal-desc">4 scrambled eggs + smoked salmon 100g + Greek yogurt 200g</div></div>
+      <div class="meal-option"><div class="meal-name">🏠 Home Power Bowl</div><div class="meal-prot">~55g protein</div><div class="meal-desc">2 eggs + 150g Greek yogurt + 100g smoked salmon + edamame</div></div>
+      <div class="section-label" style="margin-top:4px;">Lunch / Dinner combos</div>
+      <div class="meal-option"><div class="meal-name">🇯🇵 Sashimi Feast</div><div class="meal-prot">~61g protein</div><div class="meal-desc">Salmon sashimi 10pcs + edamame + miso soup with tofu</div></div>
+      <div class="meal-option"><div class="meal-name">🇻🇳 Pho Power</div><div class="meal-prot">~58g protein</div><div class="meal-desc">Large beef pho (ask for extra beef) + 2 fresh spring rolls</div></div>
+      <div class="meal-option"><div class="meal-name">🇰🇷 Bibimbap Build</div><div class="meal-prot">~56g protein</div><div class="meal-desc">Bibimbap + beef + egg + doenjang jjigae + kimchi</div></div>
+      <div class="meal-option"><div class="meal-name">🇹🇭 Thai Protein Plate</div><div class="meal-prot">~63g protein</div><div class="meal-desc">Grilled sea bass + tom yum (clear) + som tam</div></div>
+      <div class="section-label" style="margin-top:4px;">Daily non-negotiables</div>
+      <div class="card">
+        <div class="check-item" onclick="tick(this)"><div class="check-box"></div><div><div class="check-text">🫛 Tofu or edamame daily — phytoestrogens support HRT</div></div></div>
+        <div class="check-item" onclick="tick(this)"><div class="check-box"></div><div><div class="check-text">🐟 Omega-3 (salmon, sardines, or fish oil)</div></div></div>
+        <div class="check-item" onclick="tick(this)"><div class="check-box"></div><div><div class="check-text">💧 2.5L water — dehydration mimics hunger</div></div></div>
+      </div>
+    </div>
+
+    <!-- ===== WEEK ===== -->
+    <div id="tab-week" class="view">
+      <div class="card">
+        <div class="section-label">Week 1 Overview — Phase 1: Reawaken</div>
+        <div class="week-grid">
+          <div class="day-cell today"><div class="day-name">Mon</div><div class="day-icon">💪</div><div class="day-type">Lower</div></div>
+          <div class="day-cell"><div class="day-name">Tue</div><div class="day-icon">🧘</div><div class="day-type">Mobility</div></div>
+          <div class="day-cell"><div class="day-name">Wed</div><div class="day-icon">💪</div><div class="day-type">Upper</div></div>
+          <div class="day-cell"><div class="day-name">Thu</div><div class="day-icon">🏋️</div><div class="day-type">Gym</div></div>
+          <div class="day-cell"><div class="day-name">Fri</div><div class="day-icon">🏃‍♀️</div><div class="day-type">Run</div></div>
+          <div class="day-cell"><div class="day-name">Sat</div><div class="day-icon">🎨</div><div class="day-type">Arts</div></div>
+          <div class="day-cell"><div class="day-name">Sun</div><div class="day-icon">😴</div><div class="day-type">Rest</div></div>
+        </div>
+      </div>
+      <div class="card"><div class="section-label">📍 This Week's Location</div>
+        <div class="time-block"><div class="time-label">Mon–Wed</div><div><div class="time-title">🏠 At Home</div><div class="time-detail">Resistance bands + mat.</div></div></div>
+        <div class="time-block"><div class="time-label">Thu–Fri</div><div><div class="time-title">🏨 Ruby Lucy Hotel, Lower Marsh</div><div class="time-detail">Mindset Gym £7.50 · 2 min walk</div></div></div>
+        <div class="time-block"><div class="time-label">Fri pm</div><div><div class="time-title">🌊 South Bank, Queen's Walk</div><div class="time-detail">The comeback run. Fenix ON.</div></div></div>
+      </div>
+      <div class="card"><div class="section-label">📊 Sunday Check-In</div>
+        <div class="time-block"><div class="time-label">Weight</div><div><input type="text" placeholder="Enter kg" style="border:1px solid #D4CEC6;border-radius:7px;padding:5px 9px;font-family:'DM Sans',sans-serif;font-size:13px;width:120px;"></div></div>
+        <div class="time-block"><div class="time-label">Energy</div><div><div class="energy-row"><button class="energy-btn" onclick="toggleRating(this)">1</button><button class="energy-btn" onclick="toggleRating(this)">2</button><button class="energy-btn" onclick="toggleRating(this)">3</button><button class="energy-btn" onclick="toggleRating(this)">4</button><button class="energy-btn" onclick="toggleRating(this)">5</button></div></div></div>
+      </div>
+    </div>
+
+    <!-- ===== MIND ===== -->
+    <div id="tab-mind" class="view">
+      <div class="card" style="border-left:4px solid var(--teal);padding-left:14px;">
+        <div class="section-label">AuDHD Daily Care</div>
+        <div class="anchor-box" style="margin-bottom:8px;"><div class="anchor-title">🔋 Sensory Reset Protocol</div><div class="anchor-text">5–6pm daily: No screens. Walk, music, blanket, silence, or stimming. Your nervous system maintenance — not a luxury.</div></div>
+        <div class="anchor-box" style="background:var(--amber-pale);border-left-color:var(--amber);"><div class="anchor-title" style="color:var(--amber);">⚡ Overwhelm Exit Strategy</div><div class="anchor-text">STOP. Name the sensation. Drink water. Do 5 slow Cat-Cows. Reschedule one thing. One thing at a time is enough.</div></div>
+      </div>
+      <div class="section-label">How are you feeling right now?</div>
+      <div class="card"><div class="wb-row">
+        <button class="wb-btn" onclick="toggleWb(this)">😌 Calm</button>
+        <button class="wb-btn" onclick="toggleWb(this)">⚡ Buzzy</button>
+        <button class="wb-btn" onclick="toggleWb(this)">😔 Low</button>
+        <button class="wb-btn" onclick="toggleWb(this)">😤 Frustrated</button>
+        <button class="wb-btn" onclick="toggleWb(this)">🌀 Overwhelmed</button>
+        <button class="wb-btn" onclick="toggleWb(this)">💪 Strong</button>
+        <button class="wb-btn" onclick="toggleWb(this)">😴 Tired</button>
+        <button class="wb-btn" onclick="toggleWb(this)">🧡 Hopeful</button>
+      </div></div>
+    </div>
+
+    <!-- ===== LANGUAGE ===== -->
+    <div id="tab-language" class="view">
+      <div class="lang-banner"><div class="lang-big">🇮🇹 + 🇪🇸 Daily Study</div><div class="lang-sub">Consistent small sessions beat long irregular ones. Your AuDHD brain loves patterns.</div></div>
+      <div class="section-label">Weekly Study Schedule</div>
+      <div class="card">
+        <div class="time-block"><div class="time-label">Mon</div><div><div class="time-title">🇮🇹 Italian — 8 New Words <span class="tag tag-sage">20 min</span></div><div class="time-detail">Read each sentence aloud 3×. Add to Anki.</div></div></div>
+        <div class="time-block"><div class="time-label">Tue</div><div><div class="time-title">🇪🇸 Spanish — 8 New Words <span class="tag tag-amber">20 min</span></div><div class="time-detail">Write each word in your own sentence.</div></div></div>
+        <div class="time-block"><div class="time-label">Wed</div><div><div class="time-title">🏗️ Sentence Structure <span class="tag tag-teal">20 min</span></div><div class="time-detail">Build 5 sentences in each language using known words.</div></div></div>
+        <div class="time-block"><div class="time-label">Thu</div><div><div class="time-title">🇮🇹 Italian — 8 More Words <span class="tag tag-sage">20 min</span></div><div class="time-detail">Spot similarities with Spanish — note them down.</div></div></div>
+        <div class="time-block"><div class="time-label">Fri</div><div><div class="time-title">🇪🇸 Spanish — 8 More Words <span class="tag tag-amber">20 min</span></div><div class="time-detail">Send 3 sentences in Spanish for correction.</div></div></div>
+        <div class="time-block"><div class="time-label">Sat</div><div><div class="time-title">🎯 Review & Practice <span class="tag tag-rose">45 min</span></div><div class="time-detail">20 min flashcard review of all week's words. 25 min: write about your week — send for correction.</div></div></div>
+        <div class="time-block"><div class="time-label">Sun</div><div><div class="time-title">😴 Full Rest <span class="tag tag-slate">No study</span></div><div class="time-detail">Brain consolidates during rest. It's part of the plan.</div></div></div>
+      </div>
+      <div class="section-label" id="todayLangLabel">Today's Session</div>
+      <div class="card" id="todayLangCard"></div>
+      <div class="scroll-hint">💫 Consistency is the only technique that works.</div>
+    </div>
+
+    <!-- ===== VITAMINS ===== -->
+    <div id="tab-vitamins" class="view">
+      <div class="card" style="border-left:4px solid var(--amber);padding-left:14px;">
+        <div class="section-label">☀️ Morning — with breakfast</div>
+        <div class="check-item" onclick="tick(this)"><div class="check-box"></div><div><div class="check-text">💊 Oestrogen</div><div class="check-sub">HRT — same time every day.</div></div></div>
+        <div class="check-item" onclick="tick(this)"><div class="check-box"></div><div><div class="check-text">🦁 2 × Lion's Mane</div><div class="check-sub">Focus, cognitive function. Morning is optimal.</div></div></div>
+        <div class="check-item" onclick="tick(this)"><div class="check-box"></div><div><div class="check-text">🩸 1 × Iron</div><div class="check-sub">Take with vitamin C. Avoid tea/coffee for 1 hour.</div></div></div>
+        <div class="check-item" onclick="tick(this)"><div class="check-box"></div><div><div class="check-text">☀️ 1 × D3 + K2</div><div class="check-sub">Fat-soluble — take with healthy fat (eggs, salmon, avocado).</div></div></div>
+        <div class="check-item" onclick="tick(this)"><div class="check-box"></div><div><div class="check-text" id="creatineLabel2">⚡ Creatine</div><div class="check-sub" id="creatineSub2">Loading...</div></div></div>
+      </div>
+      <div class="card" style="border-left:4px solid var(--slate);padding-left:14px;">
+        <div class="section-label">🌙 Evening — 8–9pm</div>
+        <div class="check-item" onclick="tick(this)"><div class="check-box"></div><div><div class="check-text">🌿 2 × Ashwagandha</div><div class="check-sub">Cortisol reduction. Evening timing optimal.</div></div></div>
+        <div class="check-item" onclick="tick(this)"><div class="check-box"></div><div><div class="check-text">💜 1 × Magnesium Glycinate</div><div class="check-sub">30–60 min before bed. Sleep, recovery, anxiety.</div></div></div>
+        <div class="check-item" id="progItem2" onclick="tick(this)"><div class="check-box"></div><div><div class="check-text" id="progLabel2">💊 2 × Progesterone</div><div class="check-sub" id="progSub2">Loading...</div></div></div>
+      </div>
+      <div class="card" id="progCycleCard" style="border-left:4px solid var(--teal);padding-left:14px;">
+        <div class="section-label">🔄 Progesterone Cycle Tracker</div>
+        <div id="progCycleDisplay" style="margin-bottom:10px;"></div>
+        <div id="progDayGrid" class="prog-cycle-grid"></div>
+        <div style="font-size:10px;color:var(--text-muted);margin-top:8px;">Cycle started: 22 March 2026 · Days 1–14 ON · Days 15–28 OFF</div>
+      </div>
+      <div class="anchor-box">
+        <div class="anchor-title">💡 Why this stack works for you</div>
+        <div class="anchor-text"><strong>Lion's Mane</strong> supports cognitive function perimenopause can dull.<br><strong>Iron</strong> directly affects energy and endurance — your running needs it.<br><strong>D3+K2</strong> protect bone density — urgent after 40.<br><strong>Ashwagandha</strong> lowers cortisol — the enemy of sleep and weight management.<br><strong>Magnesium glycinate</strong> best form for sleep, anxiety, muscle recovery.<br><strong>Creatine</strong> boosts muscle recovery, strength, and cognitive function in perimenopause.<br><strong>Progesterone</strong> cycled to mimic natural rhythm — supports sleep depth and mood.</div>
+      </div>
+    </div>
+
+    <!-- ===== WINS ===== -->
+    <div id="tab-wins" class="view">
+      <div class="ach-form">
+        <label class="ach-label">What did you do?</label>
+        <input type="text" class="ach-input" id="achTitle" placeholder="e.g. Led the Q3 strategy review…">
+        <label class="ach-label">What was the impact?</label>
+        <textarea class="ach-textarea" id="achImpact" placeholder="e.g. Resulted in cost saving, improved team confidence…"></textarea>
+        <label class="ach-label">Category</label>
+        <div class="cat-pills">
+          <button class="cat-pill active" onclick="selCat(this)">Leadership</button>
+          <button class="cat-pill" onclick="selCat(this)">Delivery</button>
+          <button class="cat-pill" onclick="selCat(this)">Visibility</button>
+          <button class="cat-pill" onclick="selCat(this)">Relationships</button>
+          <button class="cat-pill" onclick="selCat(this)">Innovation</button>
+          <button class="cat-pill" onclick="selCat(this)">Personal Growth</button>
+          <button class="cat-pill" onclick="selCat(this)">Comeback Win</button>
+        </div>
+        <button class="add-btn" onclick="addWin()">+ Log this achievement</button>
+      </div>
+      <div class="section-label">Your Log</div>
+      <div id="winLog"><div class="ach-empty"><div style="font-size:30px;margin-bottom:8px;">🏆</div>Your achievements appear here.<br>Add your first one above.</div></div>
+    </div>
+
+    <!-- ===== CAREER ===== -->
+    <div id="tab-career" class="view">
+      <div class="focus-card">
+        <div class="focus-label">Your Two Goals Right Now</div>
+        <div class="focus-title">Get promoted & build your reputation — at the same time.</div>
+        <ul class="focus-tips">
+          <li>Promotion comes from being seen solving the right problems, not just doing good work quietly</li>
+          <li>Visibility in corporate = being in the room when decisions are made</li>
+          <li>Your AuDHD is a strategic asset — pattern recognition, deep focus, systems thinking</li>
+          <li>Back-to-back meetings are your biggest threat to deep work — protect your mornings</li>
+        </ul>
+      </div>
+      <div class="section-label">This Week's Career Actions</div>
+      <div class="strategy-block"><div class="sb-num">01</div><div class="sb-title">Speak first in at least one meeting this week</div><div class="sb-text">Even a question or summary. The first voice gets remembered. You don't need the best idea — just be present and engaged early.</div><div class="sb-tag">Visibility</div></div>
+      <div class="strategy-block"><div class="sb-num">02</div><div class="sb-title">Log one thing you solved this week</div><div class="sb-text">Go to the Wins tab and add it. Be specific. "I organised X which saved Y" beats "I worked hard" in every self-assessment.</div><div class="sb-tag">Promotion</div></div>
+      <div class="strategy-block"><div class="sb-num">03</div><div class="sb-title">Send one strategic follow-up email after a key meeting</div><div class="sb-text">A brief "next steps are X, Y, Z — I'll take on Y" signals ownership and follow-through. This is the behaviour that gets people promoted.</div><div class="sb-tag">Visibility + Delivery</div></div>
+      <div class="strategy-block"><div class="sb-num">04</div><div class="sb-title">Protect 7–9am for deep work</div><div class="sb-text">Your best cognitive window. Block it in your calendar and treat it as sacred. Back-to-back meetings after 9am are unavoidable — mornings are yours.</div><div class="sb-tag">AuDHD Protection</div></div>
+      <div class="section-label">Handling Back-to-Back Meetings</div>
+      <div class="strategy-block"><div style="font-size:18px;margin-bottom:6px;">🔴</div><div class="sb-title">The 5-minute rule</div><div class="sb-text">Between every meeting: stand up, 3 breaths, water, one note on what you need to say next. Prevents decision fatigue and transition paralysis.</div></div>
+      <div class="strategy-block"><div style="font-size:18px;margin-bottom:6px;">📝</div><div class="sb-title">After each meeting: write one sentence</div><div class="sb-text">"I agreed to X by Friday." Your brain lets go once it's written.</div></div>
+    </div>
+
+  </div><!-- end tab-content -->
+</div><!-- end screen-app -->
+
+<script>
+'use strict';
+// ── SHARED STATE ──────────────────────────────────────────
+const TODAY = new Date().toISOString().slice(0,10);
+const SAVE_KEY = 'compass_' + TODAY;
+const ACH_KEY  = 'compass_wins';
+
+const morningState = { energy:null, meetings:null, oneWin:null };
+let achievements = [];
+let selectedCat = 'Leadership';
+
+// ── GREETING ─────────────────────────────────────────────
+(function(){
+  const days = ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
+  const now = new Date();
+  const h = now.getHours();
+  const greeting = h < 12 ? 'Good morning' : h < 17 ? 'Good afternoon' : 'Good evening';
+  const el = document.getElementById('greetTime');
+  if(el) el.textContent = greeting + ' · ' + days[now.getDay()];
+  const badge = document.getElementById('dayBadge');
+  if(badge) badge.textContent = days[now.getDay()];
+  const sub = document.getElementById('dateSub');
+  if(sub) sub.textContent = now.toLocaleDateString('en-GB',{day:'numeric',month:'long',year:'numeric'}) + ' · Phase 1 · Week 1 · Reawaken';
+})();
+
+// ── BUILD DAY (called on load) ───────────────────────────
+function buildDay() {
+  const day = new Date().getDay();
+  const winIntentions = {
+    work:"Complete the one work task that matters most today.",
+    workout:"Your body is your foundation. The workout is non-negotiable today.",
+    rest:"Rest is productive. A rested mind will outperform a depleted one.",
+    'show-up':"Showing up is the whole job. That is enough. You are enough.",
+    visible:"Be present, speak early, follow up. Today you are seen.",
+    italian:"Twenty minutes of Italian. Consistency is the only technique."
+  };
+  const intentions = {low:"A slow start is still a start. Be gentle.",medium:"You have what you need. Show up steadily.",high:"Channel that energy with intention. Make today count.",fragile:"You are allowed to be fragile. Protect your nervous system first."};
+  const itEl = document.getElementById('intentionText');
+  if(itEl) itEl.textContent = winIntentions[morningState.oneWin] || intentions[morningState.energy] || "One step forward is enough.";
+
+  // Meeting alert
+  const alertEl = document.getElementById('meetingAlert');
+  if(alertEl){
+    if(morningState.meetings==='yes-bb'){
+      alertEl.innerHTML='<div class="meeting-alert"><div class="alert-icon">🔴</div><div><div class="alert-title">Back-to-back meetings — activate the 5-min rule</div><div class="alert-text">Stand up between every meeting. 3 breaths, water, one note. You cannot think from empty.</div></div></div>';
+    } else if(morningState.meetings==='yes-gaps'){
+      alertEl.innerHTML='<div class="meeting-alert yellow"><div class="alert-icon">🟡</div><div><div class="alert-title" style="color:var(--amber);">Meetings with gaps — protect those gaps fiercely</div><div class="alert-text">Use gaps for one-sentence meeting notes, water, breathe — not Slack.</div></div></div>';
+    } else { alertEl.innerHTML=''; }
+  }
+
+  buildWorkBlocks(day);
+
+  restoreState();
+  updateProgress();
+}
+
+// ── WORK BLOCKS ───────────────────────────────────────────
+function buildWorkBlocks(day) {
+  const workEl = document.getElementById('workBlocks');
+  const sectionH = document.getElementById('coachNote');
+  if(!workEl) return;
+
+  if(day===6){
+    workEl.innerHTML = '<div class="arts-day-card"><div class="arts-day-label">🎨 Workshop Day</div><div class="arts-day-sub">No work. No obligations. Just make things.</div>'
+      +artBlock('🪡 Set up your workspace first','Clear surface, tools out. Lower friction = you actually begin.','Morning')
+      +artBlock('🎨 One craft: leatherwork, knitting, or painting','Commit to one. Go deep. Switching costs energy.','10am–1pm')
+      +artBlock('📸 Photograph your work before packing away','Even WIP shots build your portfolio.','After session')
+      +artBlock('💼 Optional: 30 min business task','Pricing, listing, social post. Strictly contained.','2–2:30pm')
+      +artBlock('🎯 Study session — review this week','Flashcard review + write a short paragraph in Italian or Spanish.','3–3:45pm')
+      +'</div>';
+    return;
+  }
+  if(day===0){
+    workEl.innerHTML='<div class="rest-day-card"><div style="font-size:32px;margin-bottom:8px;">😴</div><div style="font-weight:600;font-size:14px;margin-bottom:5px;">Sunday — Full Rest</div><div style="font-size:12px;color:var(--text-muted);">No work. No planning. No guilt. Gentle stretch if it feels good.</div></div>';
+    return;
+  }
+
+  const energy = morningState.energy || 'medium';
+  const byEnergy = {
+    high:[
+      {t:'7:00–9:00AM',title:'🎯 Deep Work — protected',sub:'Most important task first. Door closed. Notifications off.',tag:'band-protect',label:'PROTECT'},
+      {t:'9:00–9:30AM',title:'📧 Email + Slack batch',sub:'One contained inbox session. Then close it.',tag:'band-task',label:'CONTAINED'},
+      {t:'9:30AM–1PM',title:'💼 Meetings + visible work',sub:'Speak early in each meeting. Write one sentence after each.',tag:'band-task',label:'WORK'},
+    ],
+    medium:[
+      {t:'7:00–8:30AM',title:'🎯 Focus Work — 90 minutes',sub:'One task. Not perfect — just started.',tag:'band-protect',label:'PROTECT'},
+      {t:'9:00–9:30AM',title:'📧 Emails — batched',sub:'Contained to this slot. Not before, not constantly.',tag:'band-task',label:'CONTAINED'},
+      {t:'9:30AM–1PM',title:'💼 Meetings + core work',sub:'5-min buffer between back-to-backs. Stay hydrated.',tag:'band-task',label:'WORK'},
+    ],
+    low:[
+      {t:'7:00–8:00AM',title:'🌱 One small task only',sub:'Pick the easiest thing. Starting is the whole win.',tag:'band-protect',label:'GENTLE'},
+      {t:'9:00–9:20AM',title:'📧 Emails — quick scan',sub:'Flag urgent only. Nothing non-urgent today.',tag:'band-task',label:'MINIMAL'},
+      {t:'9:30AM–1PM',title:'💼 Attend meetings — listen mode',sub:"It is okay to listen more than you talk today.",tag:'band-task',label:'SURVIVE'},
+    ],
+    fragile:[
+      {t:'7:00–7:45AM',title:'🌿 Gentle start — no pressure',sub:'One cup of tea. Nothing urgent until you feel anchored.',tag:'band-protect',label:'GENTLE'},
+      {t:'9:00AM',title:'📧 Emails — essential only',sub:'Flag anything with a genuine deadline. Everything else waits.',tag:'band-task',label:'MINIMAL'},
+      {t:'9:30AM–1PM',title:'💼 Minimum viable day',sub:'Attend what you must. Speak when you can.',tag:'band-task',label:'PROTECT'},
+    ]
+  };
+
+  let blocks = [...(byEnergy[energy]||byEnergy.medium)];
+  if(day===1){
+    blocks.splice(2,0,{t:'9:00–9:30AM',title:'👥 Cwtch Team Meeting',sub:'Speak early — one contribution is enough. Note one action item after.',tag:'band-alert',label:'RECURRING'});
+    blocks.push({t:'4:30–5:00PM',title:'💬 Line Manager Catch-up',sub:'Share one win from the week. This is your visibility moment.',tag:'band-alert',label:'RECURRING'});
+  }
+
+  const workoutNames = {1:'💪 Strength Lower',2:'🧘 Mobility',3:'💪 Strength Upper',4:'🏋️ Gym + Cardio',5:'🏃 Comeback Run ✨'};
+  blocks.push({t:'4:00–5:00PM',title:(workoutNames[day]||'🏋️ Workout')+' — see Workout tab',sub:'Even 20 min counts.',tag:'band-protect',label:'MOVE'});
+  blocks.push({t:'5:00–6:00PM',title:'🔇 Decompression — no screens',sub:'Walk, music, blanket, silence. Nervous system maintenance.',tag:'band-protect',label:'AUDHD'});
+  blocks.push({t:'7:00–7:20PM',title:'🇮🇹 Italian study — 20 min',sub:'See Language tab for today\'s session.',tag:'band-task',label:'JOY'});
+
+  workEl.innerHTML = blocks.map(b=>
+    '<div class="time-band"><div class="time-band-hdr" onclick="toggleBand(this)"><div class="time-band-time">'+b.t+'</div><div class="time-band-title">'+b.title+'</div><div class="band-tag '+b.tag+'">'+b.label+'</div></div><div class="band-body">'+b.sub+'</div></div>'
+  ).join('');
+}
+function artBlock(title,sub,time){
+  return '<div class="arts-block" onclick="tickArts(this)"><div class="task-check"></div><div><div class="task-title" style="font-size:13px;font-weight:500;">'+title+'</div><div style="font-size:11px;color:var(--text-muted);">'+sub+'</div><div style="font-size:10px;font-weight:600;color:var(--amber);margin-top:3px;">'+time+'</div></div></div>';
+}
+function tickArts(el){
+  el.classList.toggle('done');
+  el.querySelector('.task-check').textContent = el.classList.contains('done') ? '✓' : '';
+}
+function toggleBand(hdr){ hdr.nextElementSibling.classList.toggle('open'); }
+
+// ── CHECKLIST TICKING ─────────────────────────────────────
+function tick(el){
+  el.classList.toggle('checked');
+  const box = el.querySelector('.check-box');
+  if(box) box.textContent = el.classList.contains('checked') ? '✓' : '';
+  saveState();
+  updateProgress();
+}
+function setEnergy(btn){
+  btn.parentElement.querySelectorAll('.energy-btn').forEach(b=>b.classList.remove('selected'));
+  btn.classList.add('selected');
+  try{ localStorage.setItem('compass_energy_'+TODAY, btn.textContent.trim()); } catch(e){}
+}
+function toggleRating(btn){
+  btn.parentElement.querySelectorAll('.energy-btn').forEach(b=>b.classList.remove('selected'));
+  btn.classList.add('selected');
+}
+function toggleWb(btn){
+  document.querySelectorAll('.wb-btn').forEach(b=>b.classList.remove('selected'));
+  btn.classList.add('selected');
+}
+
+// ── PROGRESS ──────────────────────────────────────────────
+const TRACKED_IDS = [
+  '💧 Drink 500ml water before anything else',
+  '🐱 Cat-Cow × 10 slow breaths — do it before checking phone',
+  '🌅 Natural light within 20 minutes of waking',
+  '🍳 Eat within 45 min of waking — protein first',
+  '💊 Oestrogen',
+  "🦁 2 × Lion's Mane",
+  '🩸 1 × Iron',
+  '☀️ 1 × D3 + K2',
+  '🌿 2 × Ashwagandha',
+  '💜 1 × Magnesium Glycinate',
+  '💊 2 × Progesterone',
+  '📵 Phone away by 9pm',
+  '🌙 Lights dimmed by 9:30pm',
+  '🛏 In bed by 10:30pm'
+];
+function updateProgress(){
+  const items = document.querySelectorAll('.check-item');
+  let done = 0, total = TRACKED_IDS.length;
+  items.forEach(el=>{
+    const txt = el.querySelector('.check-text');
+    if(!txt) return;
+    const label = txt.textContent.trim();
+    if(TRACKED_IDS.some(id => label.startsWith(id.slice(0,20)))){
+      if(el.classList.contains('checked')) done++;
+    }
+  });
+  const pct = Math.round(done/total*100);
+  const fill = document.getElementById('progressFill');
+  const count = document.getElementById('progressCount');
+  if(fill){ fill.style.width=pct+'%'; fill.style.background=pct===100?'var(--sage)':'var(--amber)'; }
+  if(count) count.textContent = done+' / '+total+' done';
+}
+
+// ── SAVE / RESTORE ────────────────────────────────────────
+function saveState(){
+  const data = {};
+  document.querySelectorAll('.check-item').forEach((el,i)=>{ data['c'+i]=el.classList.contains('checked'); });
+  const win = document.getElementById('winText');
+  if(win) data.win = win.value;
+  try{ localStorage.setItem(SAVE_KEY, JSON.stringify(data)); } catch(e){}
+}
+function restoreState(){
+  let data;
+  try{ const r=localStorage.getItem(SAVE_KEY); if(r) data=JSON.parse(r); } catch(e){}
+  if(!data) return;
+  document.querySelectorAll('.check-item').forEach((el,i)=>{
+    if(data['c'+i]){ el.classList.add('checked'); const b=el.querySelector('.check-box'); if(b) b.textContent='✓'; }
+  });
+  const win = document.getElementById('winText');
+  if(win && data.win) win.value = data.win;
+}
+function saveWin(){
+  const win = document.getElementById('winText');
+  if(win) { const d={}; try{ const r=localStorage.getItem(SAVE_KEY); if(r) Object.assign(d,JSON.parse(r)); }catch(e){} d.win=win.value; try{localStorage.setItem(SAVE_KEY,JSON.stringify(d));}catch(e){} }
+}
+window.addEventListener('beforeunload',function(e){
+  if(document.querySelectorAll('.check-item.checked').length>0){ saveState(); e.preventDefault(); e.returnValue='Progress saved for today.'; }
+});
+
+// ── TAB NAV ───────────────────────────────────────────────
+function showTab(id){
+  document.querySelectorAll('.view').forEach(v=>v.classList.remove('active'));
+  document.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('active'));
+  const view = document.getElementById('tab-'+id);
+  if(view) view.classList.add('active');
+  if(event && event.currentTarget) event.currentTarget.classList.add('active');
+}
+
+// ── WORKOUT LOCATION ─────────────────────────────────────
+function setLoc(loc){
+  ['home','hotel','gym'].forEach(l=>{
+    const btn=document.getElementById('loc'+l.charAt(0).toUpperCase()+l.slice(1));
+    const panel=document.getElementById('workout-'+l);
+    if(btn) btn.classList.remove('active');
+    if(panel) panel.style.display='none';
+  });
+  const b=document.getElementById('loc'+loc.charAt(0).toUpperCase()+loc.slice(1));
+  const p=document.getElementById('workout-'+loc);
+  if(b) b.classList.add('active');
+  if(p) p.style.display='block';
+}
+function toggleW(id){ const el=document.getElementById(id); if(el) el.style.display=el.style.display==='none'?'block':'none'; }
+
+// ── WINS ──────────────────────────────────────────────────
+function selCat(btn){ document.querySelectorAll('.cat-pill').forEach(p=>p.classList.remove('active')); btn.classList.add('active'); selectedCat=btn.textContent; }
+function addWin(){
+  const title=document.getElementById('achTitle').value.trim();
+  const impact=document.getElementById('achImpact').value.trim();
+  if(!title){ document.getElementById('achTitle').focus(); return; }
+  achievements.unshift({id:Date.now(),title,impact,cat:selectedCat,date:new Date().toLocaleDateString('en-GB',{day:'numeric',month:'short',year:'numeric'})});
+  renderWins(); saveWins();
+  document.getElementById('achTitle').value='';
+  document.getElementById('achImpact').value='';
+}
+function delWin(id){
+  achievements=achievements.filter(a=>a.id!==id);
+  renderWins(); saveWins();
+}
+function renderWins(){
+  const log=document.getElementById('winLog');
+  if(!log) return;
+  if(!achievements.length){ log.innerHTML='<div class="ach-empty"><div style="font-size:28px;margin-bottom:7px;">🏆</div>Your achievements appear here.</div>'; return; }
+  log.innerHTML=achievements.map(a=>`<div class="ach-item"><button class="ach-del" onclick="delWin(${a.id})">✕</button><div class="ach-cat">${a.cat}</div><div class="ach-title-text">${a.title}</div>${a.impact?`<div class="ach-impact">"${a.impact}"</div>`:''}<div class="ach-date">Logged ${a.date}</div></div>`).join('');
+}
+function saveWins(){ try{localStorage.setItem(ACH_KEY,JSON.stringify(achievements));}catch(e){} }
+function loadWins(){ try{const r=localStorage.getItem(ACH_KEY); if(r){achievements=JSON.parse(r);renderWins();}}catch(e){} }
+loadWins();
+
+// ── CREATINE ──────────────────────────────────────────────
+(function(){
+  const start=new Date('2026-03-22'); const now=new Date(); now.setHours(0,0,0,0); start.setHours(0,0,0,0);
+  const dayNum=Math.floor((now-start)/86400000)+1;
+  const dose = dayNum<=5 ? ('⚡ Creatine 20g — LOADING DAY '+dayNum+' of 5') : '⚡ Creatine 3–5g maintenance';
+  const sub  = dayNum<=5 ? ('Mix into morning tea or coffee · '+(6-dayNum)+' days left at 20g') : 'Mix into morning tea or coffee daily';
+  ['creatineLabel','creatineLabel2'].forEach(id=>{const el=document.getElementById(id);if(el)el.textContent=dose;});
+  ['creatineSub','creatineSub2'].forEach(id=>{const el=document.getElementById(id);if(el)el.textContent=sub;});
+})();
+
+// ── PROGESTERONE ─────────────────────────────────────────
+(function(){
+  const start=new Date('2026-03-22'); const now=new Date(); now.setHours(0,0,0,0); start.setHours(0,0,0,0);
+  const diff=Math.floor((now-start)/86400000);
+  const cycleDay=((diff%28)+28)%28+1;
+  const isON=cycleDay<=14;
+  const daysLeft=isON?(14-cycleDay+1):(28-cycleDay+1);
+  const statusText=isON?('Day '+cycleDay+' of 14 ON · '+daysLeft+' day'+(daysLeft!==1?'s':'')+' remaining'):('OFF phase · '+daysLeft+' day'+(daysLeft!==1?'s':'')+' until next cycle');
+  const takeText = isON ? '💊 2 × Progesterone — TAKE TONIGHT' : '💊 Progesterone — OFF phase, skip tonight';
+  ['progLabel','progLabel2'].forEach(id=>{const el=document.getElementById(id);if(el)el.textContent=takeText;});
+  ['progSub','progSub2'].forEach(id=>{const el=document.getElementById(id);if(el)el.textContent=statusText;});
+  ['progItem','progItem2'].forEach(id=>{const el=document.getElementById(id);if(el){el.style.opacity=isON?'1':'0.45';el.style.pointerEvents=isON?'auto':'none';}});
+  const display=document.getElementById('progCycleDisplay');
+  if(display){
+    const pillStyle=isON?'background:var(--teal-pale);color:var(--teal);border:1px solid var(--teal);':'background:var(--slate-pale);color:var(--slate);border:1px dashed #C0BBBA;';
+    display.innerHTML='<div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;"><span style="font-size:12px;font-weight:600;">'+statusText+'</span><span style="padding:2px 10px;border-radius:20px;font-size:10px;font-weight:600;'+pillStyle+'">'+(isON?'ON':'OFF')+'</span></div>';
+  }
+  const grid=document.getElementById('progDayGrid');
+  if(grid){
+    let html='';
+    for(let i=1;i<=28;i++){
+      const on=i<=14,cur=i===cycleDay;
+      html+='<div style="text-align:center;padding:4px 2px;border-radius:6px;background:'+(on?'var(--teal-pale)':'var(--slate-pale)')+';color:'+(on?'var(--teal)':'#A0A8B0')+';font-size:10px;font-weight:'+(cur?700:400)+';border:'+(cur?'2px solid var(--amber)':'1px solid transparent')+';">'+i+'</div>';
+    }
+    grid.innerHTML=html;
+  }
+})();
+
+// ── LANGUAGE SESSION ─────────────────────────────────────
+(function(){
+  const day=new Date().getDay();
+  const sessions={
+    1:{title:'🇮🇹 Monday — Italian New Words',items:['Learn 8 new Italian words from the deck','Read each example sentence aloud 3 times','Add to Anki or your flashcard app']},
+    2:{title:'🇪🇸 Tuesday — Spanish New Words',items:['Learn 8 new Spanish words from the deck','Write each word in your own original sentence','Spot any similarities with Italian']},
+    3:{title:'🏗️ Wednesday — Sentence Structure',items:['Study this week\'s grammar pattern from the deck','Build 5 sentences in Italian using words you know','Build 5 sentences in Spanish using words you know']},
+    4:{title:'🇮🇹 Thursday — Italian New Words',items:['Learn 8 more Italian words','Spot similarities with Spanish — write them down','Read example sentences aloud']},
+    5:{title:'🇪🇸 Friday — Spanish New Words',items:['Learn 8 more Spanish words','Send me 3 sentences in Spanish for correction','Review Italian words from this week quickly']},
+    6:{title:'🎯 Saturday — Review & Practice (45 min)',items:['20 min: flashcard review of ALL words from this week','Write a short paragraph about your week in Italian or Spanish','Send it to me for correction']},
+    0:{title:'😴 Sunday — Rest Day',items:['No study today','Your brain is consolidating what you learned this week','Optional: listen to an Italian or Spanish playlist passively']}
+  };
+  const s=sessions[day];
+  const label=document.getElementById('todayLangLabel');
+  const card=document.getElementById('todayLangCard');
+  if(label) label.textContent=s.title;
+  if(card) card.innerHTML=s.items.map(function(item){
+    return '<div class="check-item" onclick="tick(this)"><div class="check-box"></div><div><div class="check-text">'+item+'</div></div></div>';
+  }).join('');
+})();
+
+// ── AUTO-INIT on load ───────────────────────────────────────
+buildDay();
+
+// ── DAY-AWARE COACH NOTE ─────────────────────────────────
+(function(){
+  const day=new Date().getDay();
+  const msgs = {
+    0: "No work. No planning. No guilt. Gentle stretch if it feels good. Complete your weekly check-in on the Week tab.",
+    1: "Week 1. The goal is NOT to be perfect — the goal is to START. Complete 4 out of 7 sessions and you are ahead. Your Cwtch meeting is at 9am — speak early, one contribution is enough.",
+    2: "Tuesday mobility session — 30 minutes of movement that feels like care, not punishment. Your body is your foundation.",
+    3: "Wednesday — strength upper body. Push-ups, band rows, overhead press. You are rebuilding something powerful.",
+    4: "Thursday — Mindset Gym is 2 minutes from the hotel. Go. Even 30 minutes changes everything.",
+    5: "Friday — the Comeback Run. South Bank, Queen Walk. Fenix ON. Walk-jog intervals. Let it be emotional. This is the one.",
+    6: "Today is yours entirely. No work. No obligations. Just make things. One craft, go deep. Photograph what you make."
+  };
+  const p = document.getElementById('coachText');
+  if(p && msgs[day]) p.textContent = msgs[day];
+})();
+
+
+</script>
+</body>
+</html>
